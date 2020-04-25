@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
+import Canvas from './Canvas';
+import MovingDots from './MovingDots';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Canvas/>
+    <MovingDots/>
   </React.StrictMode>,
   document.getElementById('root')
 );
