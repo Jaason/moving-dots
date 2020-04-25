@@ -6,14 +6,16 @@ export type Dots = {
 }
 
 type Dot = {
-    coordinates: Coordinates[]
+    coordinates: Coordinates
     color: string
+    radius: number
 }
 
 type Coordinates = {
     x: number
     y: number
-    radius: number
+    vx: number
+    vy: number
 }
 
 export type MovingDotsProps = {

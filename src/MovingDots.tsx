@@ -1,7 +1,8 @@
-import React, { useRef, useLayoutEffect } from 'react'
+import React, { useRef, useLayoutEffect, useState, useEffect } from 'react'
 import { Dots, MovingDotsProps } from './types'
 import { generateDotsList } from './utils/dotsGenerator'
 import { drawDots } from './utils/drawingOperations'
+import { useCurrentWitdh } from './utils/useCurrentWidth'
 
 const MovingDots = (props: MovingDotsProps) => {
     const {
@@ -11,6 +12,7 @@ const MovingDots = (props: MovingDotsProps) => {
         background = '#000',
     } = props
     const canvas = useRef<HTMLCanvasElement>(null)
+    let currentWidth = useCurrentWitdh()
 
     let dotsList: Dots = {
         cuantity: props.cuantity,
@@ -19,14 +21,22 @@ const MovingDots = (props: MovingDotsProps) => {
         array: [],
     }
 
-    //generate dots
-    const dots = {
-        ...dotsList,
-        array: [...generateDotsList(width, height, cuantity)],
-    }
+    const [dots, setDots] = useState(dotsList)
 
+    //generate dots
+    const generate = generateDotsList(width, height, cuantity)
+
+    useEffect(() => {
+        setDots({
+            ...dotsList,
+            array: [...generate],
+        })
+    }, [])
+
+    console.log(dots)
     useLayoutEffect(() => {
         const context = canvas.current?.getContext('2d')
+
         if (context) {
             // set background color
             context.fillStyle = background
