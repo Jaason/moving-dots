@@ -1,7 +1,7 @@
 import React, { useRef, useLayoutEffect, useState, useEffect } from 'react'
 import { Dots, MovingDotsProps } from './types'
 import { generateDotsList } from './utils/dotsGenerator'
-import { drawDots } from './utils/drawingOperations'
+import { drawDots, moveDots } from './utils/drawingOperations'
 import { useCurrentWitdh } from './utils/useCurrentWidth'
 
 const MovingDots = (props: MovingDotsProps) => {
@@ -34,15 +34,25 @@ const MovingDots = (props: MovingDotsProps) => {
     }, [])
 
     console.log(dots)
+
     useLayoutEffect(() => {
         const context = canvas.current?.getContext('2d')
 
         if (context) {
-            // set background color
-            context.fillStyle = background
-            context.fillRect(0, 0, width, height)
             // draw dots
-            drawDots(dots, context)
+
+            const animateDots = () => {
+                context.clearRect(0, 0, width, height)
+                // set background color
+                context.fillStyle = background
+                context.fillRect(0, 0, width, height)
+                moveDots(dots, width, height)
+                // connectDots()
+                drawDots(dots, context)
+                requestAnimationFrame(animateDots)
+            }
+
+            requestAnimationFrame(animateDots)
         }
     })
 

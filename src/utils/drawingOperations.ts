@@ -29,9 +29,10 @@ export const moveDots = (dots: Dots, width: number, height: number) => {
             dot.vx = -dot.vx
             dot.vy = dot.vy
         }
-        dot.x += dot.vx
-        dot.y += dot.vy
 
-        return null
+        return {
+            x: dot.x += dot.vx,
+            y: dot.y += dot.vy,
+        }
     })
 }
