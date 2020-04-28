@@ -1,4 +1,10 @@
-import React, { useRef, useLayoutEffect, useState, useEffect } from 'react'
+import React, {
+    useRef,
+    useLayoutEffect,
+    useState,
+    useEffect,
+    useCallback,
+} from 'react'
 import { Dots, MovingDotsProps } from './types'
 import { generateDotsList } from './utils/dotsGenerator'
 import { drawDots, moveDots } from './utils/drawingOperations'
@@ -11,8 +17,15 @@ const MovingDots = (props: MovingDotsProps) => {
         cuantity = 250,
         background = '#000',
     } = props
-    const canvas = useRef<HTMLCanvasElement>(null)
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    let context: CanvasRenderingContext2D | undefined | null = null
+
     let currentWidth = useCurrentWitdh()
+
+    type Coordinate = {
+        x: number
+        y: number
+    }
 
     let dotsList: Dots = {
         cuantity: props.cuantity,
@@ -21,10 +34,44 @@ const MovingDots = (props: MovingDotsProps) => {
         array: [],
     }
 
+    const [mousePosition, setMousePosition] = useState<Coordinate | undefined>(
+        undefined
+    )
+
     const [dots, setDots] = useState(dotsList)
 
     //generate dots
     const generate = generateDotsList(width, height, cuantity)
+
+    const mouseMove = useCallback((event: MouseEvent) => {
+        const coordinates = getCoordinates(event)
+        if (coordinates) {
+            setMousePosition(coordinates)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (!canvasRef.current) {
+            return
+        }
+        const canvas: HTMLCanvasElement = canvasRef.current
+        canvas.addEventListener('mousemove', mouseMove)
+        return () => {
+            canvas.removeEventListener('mousemove', mouseMove)
+        }
+    }, [mousePosition])
+
+    const getCoordinates = (event: MouseEvent): Coordinate | undefined => {
+        if (!canvasRef.current) {
+            return
+        }
+
+        const canvas: HTMLCanvasElement = canvasRef.current
+        return {
+            x: event.pageX - canvas.offsetLeft,
+            y: event.pageY - canvas.offsetTop,
+        }
+    }
 
     useEffect(() => {
         setDots({
@@ -36,19 +83,19 @@ const MovingDots = (props: MovingDotsProps) => {
     console.log(dots)
 
     useLayoutEffect(() => {
-        const context = canvas.current?.getContext('2d')
+        context = canvasRef.current?.getContext('2d')
 
         if (context) {
             // draw dots
 
             const animateDots = () => {
-                context.clearRect(0, 0, width, height)
+                context!.clearRect(0, 0, width, height)
                 // set background color
-                context.fillStyle = background
-                context.fillRect(0, 0, width, height)
+                context!.fillStyle = background
+                context!.fillRect(0, 0, width, height)
                 moveDots(dots, width, height)
                 // connectDots()
-                drawDots(dots, context)
+                drawDots(dots, context!)
                 requestAnimationFrame(animateDots)
             }
 
@@ -56,7 +103,7 @@ const MovingDots = (props: MovingDotsProps) => {
         }
     })
 
-    return <canvas ref={canvas} width={width} height={height} />
+    return <canvas ref={canvasRef} width={width} height={height} />
 }
 
 export default MovingDots
