@@ -10,22 +10,35 @@ import { generateDotsList } from './utils/dotsGenerator'
 import { drawDots, moveDots } from './utils/drawingOperations'
 import { useCurrentWitdh } from './utils/useCurrentWidth'
 
+type Coordinate = {
+    x: number
+    y: number
+}
+
+// x,y is the point to test
+// cx, cy is circle center, and radius is circle radius
+function insideCircle(
+    x: number,
+    y: number,
+    cx: number,
+    cy: number,
+    radius: number
+) {
+    var distancesquared = (x - cx) * (x - cx) + (y - cy) * (y - cy)
+    return distancesquared <= radius * radius
+}
+
 const MovingDots = (props: MovingDotsProps) => {
     const {
         width = 500,
         height = 500,
-        cuantity = 250,
+        cuantity = 5,
         background = '#000',
     } = props
+
     const canvasRef = useRef<HTMLCanvasElement>(null)
     let context: CanvasRenderingContext2D | undefined | null = null
-
     let currentWidth = useCurrentWitdh()
-
-    type Coordinate = {
-        x: number
-        y: number
-    }
 
     let dotsList: Dots = {
         cuantity: props.cuantity,
@@ -40,14 +53,12 @@ const MovingDots = (props: MovingDotsProps) => {
 
     const [dots, setDots] = useState(dotsList)
 
-    //generate dots
-    const generate = generateDotsList(width, height, cuantity)
-
-    const mouseMove = useCallback((event: MouseEvent) => {
-        const coordinates = getCoordinates(event)
-        if (coordinates) {
-            setMousePosition(coordinates)
-        }
+    useEffect(() => {
+        // generate dots at start
+        setDots({
+            ...dotsList,
+            array: [...generateDotsList(width, height, cuantity)],
+        })
     }, [])
 
     useEffect(() => {
@@ -55,32 +66,57 @@ const MovingDots = (props: MovingDotsProps) => {
             return
         }
         const canvas: HTMLCanvasElement = canvasRef.current
+
+        const getCoordinates = (event: MouseEvent): Coordinate | undefined => {
+            return {
+                x: event.pageX - canvas.offsetLeft,
+                y: event.pageY - canvas.offsetTop,
+            }
+        }
+
+        // bind mouse event to canvas
+        const mouseMove = (event: MouseEvent) => {
+            const coordinates = getCoordinates(event)
+            // console.log('coord', coordinates)
+
+            //check if dots are near mouse pointer
+            // iterate over
+            const arr = dots.array
+
+            arr.map((single, index) => {
+                let dot = single.coordinates
+                let test = insideCircle(
+                    dot.x,
+                    dot.y,
+                    coordinates!.x,
+                    coordinates!.y,
+                    50
+                )
+
+                // move out of a circle
+
+                // update the state for a tested positively dot
+
+                if (test) {
+                    arr[index].coordinates.x = dot.x + 50
+
+                    // setDots({
+                    //     ...dots,
+                    //     array: [
+                    //         ...arr,
+                    //         (arr[index].coordinates.x = dot.x + 50),
+                    //     ],
+                    // })
+                }
+
+                // console.log('inside circle', index, test)
+            })
+        }
         canvas.addEventListener('mousemove', mouseMove)
         return () => {
             canvas.removeEventListener('mousemove', mouseMove)
         }
-    }, [mousePosition])
-
-    const getCoordinates = (event: MouseEvent): Coordinate | undefined => {
-        if (!canvasRef.current) {
-            return
-        }
-
-        const canvas: HTMLCanvasElement = canvasRef.current
-        return {
-            x: event.pageX - canvas.offsetLeft,
-            y: event.pageY - canvas.offsetTop,
-        }
-    }
-
-    useEffect(() => {
-        setDots({
-            ...dotsList,
-            array: [...generate],
-        })
-    }, [])
-
-    console.log(dots)
+    }, [dots])
 
     useLayoutEffect(() => {
         context = canvasRef.current?.getContext('2d')

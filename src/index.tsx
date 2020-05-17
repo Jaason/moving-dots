@@ -10,7 +10,7 @@ ReactDOM.render(
             width={window.innerWidth}
             height={window.innerHeight}
             background={'#3e253c'}
-            cuantity={250}
+            cuantity={5}
         />
     </React.StrictMode>,
     document.getElementById('root')
